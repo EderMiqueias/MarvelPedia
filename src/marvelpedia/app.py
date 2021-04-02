@@ -2,6 +2,8 @@ import falcon
 import json
 import requests
 
+from .key_manager import get_hash_ts
+
 
 class CharactersResource(object):
     def on_get(self, req, resp, character_id=None):
@@ -9,17 +11,20 @@ class CharactersResource(object):
             rf = ["id", "name", "description", "comics"]
         else:
             rf = ["id", "name"]
-        characters = self.get_characters(character_id, rf)
 
+        characters = self.get_characters(character_id, rf)
         resp.body = json.dumps(characters)
         resp.status = falcon.HTTP_200
 
     def get_characters(self, character_id, required_fields, apply_filter=True) -> dict:
         s = f"/{character_id}" if character_id else ""
+        my_hash, ts = get_hash_ts()
+
         url = "https://gateway.marvel.com/v1/public/" \
               "characters" + s + \
-              "?ts=1&apikey=947107e18f1a91614288b3e65c30d5ae" \
-              "&hash=edbb5c9488c3367843bd32c150dcd52f"
+              "?ts=" + str(ts) + \
+              "&apikey=947107e18f1a91614288b3e65c30d5ae" \
+              "&hash=" + my_hash
         r = requests.get(url)
 
         if apply_filter:
